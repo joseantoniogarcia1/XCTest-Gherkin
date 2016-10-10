@@ -64,6 +64,11 @@ open class NativeTestCase : XCTestCase {
     
     open override func setUp() {
         super.setUp()
+        
+        if (!UserDefaults.standard.bool(forKey: "stepCompleted")) {
+            //ERROR DETECTED
+        }
+        
         self.state.loadAllStepsIfNeeded()
     }
     
@@ -75,6 +80,7 @@ open class NativeTestCase : XCTestCase {
             self.state.printTemplatedCodeForAllMissingSteps()
             self.state.resetMissingSteps()
         }
+        // ATDD-3 Print JSON in file
     }
     
     // MARK: Test template method
@@ -99,7 +105,32 @@ open class NativeTestCase : XCTestCase {
         if let background = feature.background {
             background.stepDescriptions.forEach(self.performStep)
         }
-        scenario.stepDescriptions.forEach(self.performStep)
+        
+        // ATDD-4
+        //scenario.stepDescriptions.forEach(self.performStep)
+        var arrayCucumber : Array<Dictionary<String, AnyObject>> = UserDefaults.standard.object(forKey: "CucumberJSON") as! Array<Dictionary<String, AnyObject>>
+        var dic = Dictionary<String, AnyObject>()
+        dic["name"] = feature.featureDescription as AnyObject?
+        dic["elements"] = Array<AnyObject>() as AnyObject?
+        
+        var componentsNameScenario:[String] = "je".components(separatedBy: "line_")
+        
+        
+        arrayCucumber.append(dic)
+        
+        for string in scenario.stepDescriptions {
+            UserDefaults.standard.set(false, forKey: "stepCompleted")
+            UserDefaults.standard.synchronize()
+            
+            self.performStep(string)
+
+            UserDefaults.standard.set(true, forKey: "stepCompleted")
+            UserDefaults.standard.synchronize()
+            
+            // Save Step
+        }
+        
+        
     }
     
     // MARK: Auxiliary
